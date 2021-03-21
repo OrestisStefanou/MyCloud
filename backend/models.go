@@ -20,3 +20,10 @@ type NewDirectoryInfo struct {
 	Path    string `json:"path" binding:"required"`
 	DirName string `json:"dirName" binding:"required"`
 }
+
+type DirectoryEntryInfo struct {
+	Name        string `json:"name" binding:"required"`
+	IsDirectory bool   `json:"isDirectory" binding:"required"`
+	Icon        string `json:"icon" binding:"required"`
+	Link        string `json:"link" binding:"required"`
+}

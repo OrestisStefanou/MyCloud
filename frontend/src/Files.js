@@ -78,6 +78,8 @@ export default function Files() {
   const [fileUploaded,setFileUploaded] = useState(false);
   const [createDir,setCreateDir] = useState(false);
   const [newDirInfo,setNewDirInfo] = useState({dirName:'',path:useParams().path})
+  const [errorMessage,setErrorMessage] = useState('')
+  const [directoryEntries,setDirectoryEntries] = useState([])
   
   console.log(useParams().path);
 
@@ -140,9 +142,10 @@ export default function Files() {
       });
     const jsonResponse = await response.json()
     if (response.status === 202) {
-      console.log(jsonResponse)
+      console.log(jsonResponse.dirEntries)
+      setDirectoryEntries(jsonResponse.dirEntries)
     }else{
-      console.log(jsonResponse)
+      console.log(jsonResponse.error)
     }
   }
 
@@ -155,7 +158,7 @@ export default function Files() {
   const handleNewDirSubmit = (e) => {
     e.preventDefault();
     console.log(newDirInfo);
-    fetch('http://localhost:8080/v1/MyCloud/signin', {
+    fetch('http://localhost:8080/v1/MyCloud/createDir', {
       method: "POST",
       mode:"cors",
       credentials:"include",
@@ -166,9 +169,9 @@ export default function Files() {
     .then((json) => {
       console.log(json);
       if(json.error){
-        /*setErrorMessage(json.error);*/
+        setErrorMessage(json.error);
       }else{
-        history.push(`files/home`)
+        setCreateDir(false)
       }
     });
   }
@@ -249,6 +252,7 @@ export default function Files() {
                           Cancel
                         </Button>
                       </form>
+                      {errorMessage && <Alert onClose={() => setErrorMessage("")} severity="error">{errorMessage}</Alert>}
                     </div>
                 }
               </Grid>
@@ -310,10 +314,11 @@ export default function Files() {
                     <Button
                       variant="contained"
                       color="primary"
+                      href="#"
                       className={classes.button}
                       startIcon={<CloudDownloadIcon />}
                     >
-                      Download
+                      Open
                     </Button>
                     <Button
                       variant="contained"

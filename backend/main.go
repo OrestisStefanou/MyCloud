@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -125,12 +126,16 @@ func listClientDir(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong!"})
 		}
-		fmt.Println("Listing subdir/parent")
-		for _, entry := range dir {
+		var dirEntries = make([]DirectoryEntryInfo, len(dir))
+		for i, entry := range dir {
 			fmt.Println(" ", entry.Name(), entry.IsDir())
+			dirEntries[i].Icon = "testIcon"
+			dirEntries[i].Link = "testLink"
+			dirEntries[i].Name = entry.Name()
+			dirEntries[i].IsDirectory = entry.IsDir()
 		}
 
-		c.JSON(http.StatusAccepted, gin.H{"status": "Success"})
+		c.JSON(http.StatusAccepted, gin.H{"dirEntries": dirEntries})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Path data not given"})
 	}
@@ -151,7 +156,6 @@ func uploadFile(c *gin.Context) {
 	log.Println(file.Filename, path)
 
 	// Upload the file to specific dst.
-	//dst := "/home/orestis/Desktop/git.pdf"
 	dst := filepath.Join(clientsBaseDir, userEmail, path, file.Filename)
 	fmt.Println("FILEPATH TO CREATE ", dst)
 	c.SaveUploadedFile(file, dst)
@@ -172,9 +176,13 @@ func createDirectory(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&newDirInfo); err == nil {
 		newDir := filepath.Join(clientsBaseDir, userEmail, newDirInfo.Path, newDirInfo.DirName)
-		fmt.Println("CREATING DIRECTORY ", newDir)
-		c.JSON(http.StatusOK, gin.H{"status": "Directory created"})
+		err = os.Mkdir(newDir, 0755)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong during creating the folder"})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"status": "Directory created"})
+		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Not all neccesarry data given"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Directory name not given"})
 	}
 }
