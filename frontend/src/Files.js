@@ -19,6 +19,7 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import Alert from '@material-ui/lab/Alert';
+import TextField from '@material-ui/core/TextField';
 
 
 function Copyright() {
@@ -75,6 +76,8 @@ export default function Files() {
   const [currentPath,setCurrentPath] = useState(useParams().path);
   const [fileUploading,setFileUploading] = useState(false);
   const [fileUploaded,setFileUploaded] = useState(false);
+  const [createDir,setCreateDir] = useState(false);
+  const [newDirInfo,setNewDirInfo] = useState({dirName:'',path:useParams().path})
   
   console.log(useParams().path);
 
@@ -143,6 +146,33 @@ export default function Files() {
     }
   }
 
+  const handleChange = (e) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    setNewDirInfo({ ...newDirInfo, [name]: value });
+  };  
+
+  const handleNewDirSubmit = (e) => {
+    e.preventDefault();
+    console.log(newDirInfo);
+    fetch('http://localhost:8080/v1/MyCloud/signin', {
+      method: "POST",
+      mode:"cors",
+      credentials:"include",
+      body: JSON.stringify(newDirInfo),
+      headers: {"Content-type": "application/json; charset=UTF-8",/*"Origin":"http://localhost:3000"*/}
+    })
+    .then(response => response.json())
+    .then((json) => {
+      console.log(json);
+      if(json.error){
+        /*setErrorMessage(json.error);*/
+      }else{
+        history.push(`files/home`)
+      }
+    });
+  }
+
   useEffect(() => {
     listDirectory();
   }, []);
@@ -182,10 +212,45 @@ export default function Files() {
                 </Grid>
 
                 <Grid item>
-                  <Button variant="outlined" color="primary">
+                  <Button variant="outlined" color="primary" onClick={() => setCreateDir(true)}>
                     Create a directory
                   </Button>
                 </Grid>
+                {createDir &&
+                      <div className={classes.paper}>
+                        <br></br>
+                      <form className={classes.form} noValidate>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <TextField
+                              autoComplete="fname"
+                              name="dirName"
+                              variant="outlined"
+                              required
+                              fullWidth
+                              id="dirName"
+                              label="Directory Name"
+                              onChange={handleChange}
+                              autoFocus
+                            />
+                          </Grid>
+                        </Grid>
+                        <Button
+                          type="submit"
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          className={classes.submit}
+                          onClick={handleNewDirSubmit}
+                        >
+                          Create Directory
+                        </Button>
+                        <Button variant="contained" color="secondary" onClick={() => setCreateDir(false)}>
+                          Cancel
+                        </Button>
+                      </form>
+                    </div>
+                }
               </Grid>
 
               {isFilePicked ? (

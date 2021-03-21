@@ -45,6 +45,7 @@ func main() {
 		v1.GET("/isAuthenticated", isAuthenticated)
 		v1.POST("/upload", uploadFile)
 		v1.POST("/listDir", listClientDir)
+		v1.POST("/createDir", createDirectory)
 	}
 
 	router.Run()
@@ -156,4 +157,24 @@ func uploadFile(c *gin.Context) {
 	c.SaveUploadedFile(file, dst)
 
 	c.JSON(http.StatusOK, gin.H{"status": fmt.Sprintf("'%s' uploaded!", file.Filename)})
+}
+
+func createDirectory(c *gin.Context) {
+	session := sessions.Default(c)
+	var newDirInfo NewDirectoryInfo
+	var userEmail string
+	email := session.Get("userEmail")
+	if email != nil {
+		userEmail = email.(string)
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authenticated"})
+	}
+
+	if err := c.ShouldBindJSON(&newDirInfo); err == nil {
+		newDir := filepath.Join(clientsBaseDir, userEmail, newDirInfo.Path, newDirInfo.DirName)
+		fmt.Println("CREATING DIRECTORY ", newDir)
+		c.JSON(http.StatusOK, gin.H{"status": "Directory created"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not all neccesarry data given"})
+	}
 }

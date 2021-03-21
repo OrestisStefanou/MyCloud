@@ -15,3 +15,8 @@ type LoginInfo struct {
 type DirectoryInfo struct {
 	Path string `json:"path" binding:"required"`
 }
+
+type NewDirectoryInfo struct {
+	Path    string `json:"path" binding:"required"`
+	DirName string `json:"dirName" binding:"required"`
+}
