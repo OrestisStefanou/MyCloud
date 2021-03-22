@@ -20,6 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import Alert from '@material-ui/lab/Alert';
 import TextField from '@material-ui/core/TextField';
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 
 
 function Copyright() {
@@ -67,7 +68,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function Files() {
   const classes = useStyles();
@@ -81,8 +81,6 @@ export default function Files() {
   const [errorMessage,setErrorMessage] = useState('')
   const [directoryEntries,setDirectoryEntries] = useState([])
   
-  console.log(useParams().path);
-
   let history = useHistory();
 
   const changeHandler = (event) => {
@@ -172,13 +170,23 @@ export default function Files() {
         setErrorMessage(json.error);
       }else{
         setCreateDir(false)
+        setDirectoryEntries([...directoryEntries,json.newDirectory])
       }
     });
   }
 
+  function handleBreadcrumb(event) {
+    event.preventDefault();
+    var targetDir = event.target.text;
+    var n = currentPath.indexOf(targetDir);
+    var targetPath = currentPath.substr(0, n+targetDir.length)
+    setCurrentPath(targetPath);
+    history.push(`${targetPath}`);
+  }
+
   useEffect(() => {
     listDirectory();
-  }, []);
+  }, [currentPath]);
 
   return (
     <React.Fragment>
@@ -200,7 +208,15 @@ export default function Files() {
             </Typography>
             <Typography variant="h5" align="center" color="textSecondary" paragraph>
               Current Directory:{currentPath}
+              <Breadcrumbs aria-label="breadcrumb" align="inherit">
+              {currentPath.split("_").map((dirEntry) => (
+                      <Link key={dirEntry} color="inherit" href="/" align="inherit" onClick={handleBreadcrumb}>
+                      {dirEntry}
+                    </Link>
+              ))}
+              </Breadcrumbs>
             </Typography>
+           
             <div className={classes.heroButtons}>
               <Grid container spacing={2} justify="center">
               <Grid item>
@@ -294,8 +310,8 @@ export default function Files() {
         <Container className={classes.cardGrid} maxWidth="md">
           {/* End hero unit */}
           <Grid container spacing={4}>
-            {cards.map((card) => (
-              <Grid item key={card} xs={12} sm={6} md={4}>
+            {directoryEntries.map((dirEntry) => (
+              <Grid item key={dirEntry.name} xs={12} sm={6} md={4}>
                 <Card className={classes.card}>
                   <CardMedia
                     className={classes.cardMedia}
@@ -303,11 +319,8 @@ export default function Files() {
                     title="Image title"
                   />
                   <CardContent className={classes.cardContent}>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      Heading
-                    </Typography>
-                    <Typography>
-                      This is a media card. You can use this section to describe the content.
+                    <Typography gutterBottom variant="h6" component="h2">
+                      {dirEntry.name}
                     </Typography>
                   </CardContent>
                   <CardActions>

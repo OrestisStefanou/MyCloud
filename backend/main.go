@@ -121,7 +121,8 @@ func listClientDir(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&dirInfo); err == nil {
-		userPath := filepath.Join(clientsBaseDir, userEmail, dirInfo.Path)
+		urlPath := getPathFromURLParam(dirInfo.Path) //Create the url path from url parameter
+		userPath := filepath.Join(clientsBaseDir, userEmail, urlPath)
 		dir, err := ioutil.ReadDir(userPath)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong!"})
@@ -152,7 +153,8 @@ func uploadFile(c *gin.Context) {
 	}
 	// single file
 	file, _ := c.FormFile("file")
-	path := c.PostForm("path")
+	urlPath := c.PostForm("path")
+	path := getPathFromURLParam(urlPath)
 	log.Println(file.Filename, path)
 
 	// Upload the file to specific dst.
@@ -180,7 +182,12 @@ func createDirectory(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong during creating the folder"})
 		} else {
-			c.JSON(http.StatusOK, gin.H{"status": "Directory created"})
+			var newDirInfoResponse DirectoryEntryInfo
+			newDirInfoResponse.Name = newDirInfo.DirName
+			newDirInfoResponse.IsDirectory = true
+			newDirInfoResponse.Icon = "TestIcon"
+			newDirInfoResponse.Link = "TestLink"
+			c.JSON(http.StatusOK, gin.H{"newDirectory": newDirInfoResponse})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Directory name not given"})
