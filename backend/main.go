@@ -177,7 +177,7 @@ func createDirectory(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&newDirInfo); err == nil {
-		newDir := filepath.Join(clientsBaseDir, userEmail, newDirInfo.Path, newDirInfo.DirName)
+		newDir := filepath.Join(clientsBaseDir, userEmail, getPathFromURLParam(newDirInfo.Path), newDirInfo.DirName)
 		err = os.Mkdir(newDir, 0755)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Something went wrong during creating the folder"})
