@@ -108,6 +108,7 @@ export default function Files() {
         console.log('Success:', result);
         setFileUploading(false);
         setFileUploaded(true);
+        setDirectoryEntries([...directoryEntries,result.newFile])
       })
       .catch((error) => {
         console.error('Error:', error);

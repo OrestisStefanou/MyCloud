@@ -47,6 +47,8 @@ func main() {
 		v1.POST("/upload", uploadFile)
 		v1.POST("/listDir", listClientDir)
 		v1.POST("/createDir", createDirectory)
+		v1.StaticFS("/static", http.Dir("./static"))
+		v1.StaticFS("/files", http.Dir(clientsBaseDir))
 	}
 
 	router.Run()
@@ -159,10 +161,14 @@ func uploadFile(c *gin.Context) {
 
 	// Upload the file to specific dst.
 	dst := filepath.Join(clientsBaseDir, userEmail, path, file.Filename)
-	fmt.Println("FILEPATH TO CREATE ", dst)
 	c.SaveUploadedFile(file, dst)
 
-	c.JSON(http.StatusOK, gin.H{"status": fmt.Sprintf("'%s' uploaded!", file.Filename)})
+	var newFileInfoResponse DirectoryEntryInfo
+	newFileInfoResponse.Name = file.Filename
+	newFileInfoResponse.IsDirectory = false
+	newFileInfoResponse.Icon = "TestIcon"
+	newFileInfoResponse.Link = "TestLink"
+	c.JSON(http.StatusOK, gin.H{"newFile": newFileInfoResponse})
 }
 
 func createDirectory(c *gin.Context) {
