@@ -58,6 +58,7 @@ const useStyles = makeStyles((theme) => ({
   },
   cardMedia: {
     paddingTop: '56.25%', // 16:9
+    height: 0,
   },
   cardContent: {
     flexGrow: 1,
@@ -316,7 +317,7 @@ export default function Files() {
                 <Card className={classes.card}>
                   <CardMedia
                     className={classes.cardMedia}
-                    image="https://source.unsplash.com/random"
+                    image = {dirEntry.icon}
                     title="Image title"
                   />
                   <CardContent className={classes.cardContent}>
@@ -328,7 +329,7 @@ export default function Files() {
                     <Button
                       variant="contained"
                       color="primary"
-                      href="#"
+                      href={dirEntry.link}
                       className={classes.button}
                       startIcon={<CloudDownloadIcon />}
                     >

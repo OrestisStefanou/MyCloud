@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,8 +13,6 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
-
-const clientsBaseDir = "/home/orestis/MyCloud"
 
 func main() {
 	dbConnect("orestis", "Ore$tis1997", "MyCloud")
@@ -131,9 +128,9 @@ func listClientDir(c *gin.Context) {
 		}
 		var dirEntries = make([]DirectoryEntryInfo, len(dir))
 		for i, entry := range dir {
-			fmt.Println(" ", entry.Name(), entry.IsDir())
-			dirEntries[i].Icon = "testIcon"
-			dirEntries[i].Link = "testLink"
+			//fmt.Println(" ", entry.Name(), entry.IsDir())
+			dirEntries[i].Icon = getFileIconLink(entry.Name(), entry.IsDir())
+			dirEntries[i].Link = getFileLink(filepath.Join(userEmail, urlPath, entry.Name()))
 			dirEntries[i].Name = entry.Name()
 			dirEntries[i].IsDirectory = entry.IsDir()
 		}
@@ -166,8 +163,8 @@ func uploadFile(c *gin.Context) {
 	var newFileInfoResponse DirectoryEntryInfo
 	newFileInfoResponse.Name = file.Filename
 	newFileInfoResponse.IsDirectory = false
-	newFileInfoResponse.Icon = "TestIcon"
-	newFileInfoResponse.Link = "TestLink"
+	newFileInfoResponse.Icon = getFileIconLink(file.Filename, false)
+	newFileInfoResponse.Link = getFileLink(filepath.Join(userEmail, path, file.Filename))
 	c.JSON(http.StatusOK, gin.H{"newFile": newFileInfoResponse})
 }
 
@@ -191,7 +188,7 @@ func createDirectory(c *gin.Context) {
 			var newDirInfoResponse DirectoryEntryInfo
 			newDirInfoResponse.Name = newDirInfo.DirName
 			newDirInfoResponse.IsDirectory = true
-			newDirInfoResponse.Icon = "TestIcon"
+			newDirInfoResponse.Icon = getFileIconLink(newDirInfo.DirName, true)
 			newDirInfoResponse.Link = "TestLink"
 			c.JSON(http.StatusOK, gin.H{"newDirectory": newDirInfoResponse})
 		}
