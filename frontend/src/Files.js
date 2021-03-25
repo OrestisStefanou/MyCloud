@@ -78,9 +78,10 @@ export default function Files() {
   const [fileUploading,setFileUploading] = useState(false);
   const [fileUploaded,setFileUploaded] = useState(false);
   const [createDir,setCreateDir] = useState(false);
-  const [newDirInfo,setNewDirInfo] = useState({dirName:'',path:useParams().path})
-  const [errorMessage,setErrorMessage] = useState('')
-  const [directoryEntries,setDirectoryEntries] = useState([])
+  const [newDirInfo,setNewDirInfo] = useState({dirName:'',path:useParams().path});
+  const [errorMessage,setErrorMessage] = useState('');
+  const [directoryEntries,setDirectoryEntries] = useState([]);
+  const [deleteWarning,setDeleteWarning] = useState({show:false,entryToDeleteName:''});
   
   let history = useHistory();
 
@@ -177,6 +178,14 @@ export default function Files() {
     });
   }
 
+  function handleChangeDirectory(dirName){
+    var str = "_";
+    var dir = str.concat(dirName);
+    var newDir = currentPath.concat(dir);
+    setCurrentPath(newDir);
+    history.push(`${newDir}`);
+  }
+
   function handleBreadcrumb(event) {
     event.preventDefault();
     var targetDir = event.target.text;
@@ -184,6 +193,32 @@ export default function Files() {
     var targetPath = currentPath.substr(0, n+targetDir.length)
     setCurrentPath(targetPath);
     history.push(`${targetPath}`);
+  }
+
+  function handleDeleteEntry(entryObject){
+    console.log("DELETING ",entryObject);
+    const entryName = entryObject.name;
+    const isDir = entryObject.isDirectory;
+    const data = {name:entryName,isDirectory:isDir,path:currentPath}
+    console.log("DATA IS",JSON.stringify(data))
+    fetch('http://localhost:8080/v1/MyCloud/delete', {
+      method: "POST",
+      mode:"cors",
+      credentials:"include",
+      body: JSON.stringify(data),
+      headers: {"Content-type": "application/json; charset=UTF-8",}
+    })
+    .then(response => response.json())
+    .then((json) => {
+      console.log(json);
+      if(json.error){
+        setErrorMessage(json.error);
+      }else{
+        setDeleteWarning({show:false,entryToDeleteName:''});
+        let newEntries = directoryEntries.filter((entry) => entry.name !== entryObject.name);
+        setDirectoryEntries(newEntries);
+      }
+    }); 
   }
 
   useEffect(() => {
@@ -326,6 +361,7 @@ export default function Files() {
                     </Typography>
                   </CardContent>
                   <CardActions>
+                    {!dirEntry.isDirectory ?(
                     <Button
                       variant="contained"
                       color="primary"
@@ -335,15 +371,45 @@ export default function Files() {
                     >
                       Open
                     </Button>
+                    ): (
+                      <Button
+                      variant="contained"
+                      color="primary"
+                      href="#"
+                      onClick={() => handleChangeDirectory(dirEntry.name)}
+                      className={classes.button}
+                      startIcon={<CloudDownloadIcon />}
+                    >
+                      Open
+                    </Button>
+                    )}
                     <Button
                       variant="contained"
                       color="secondary"
                       className={classes.button}
                       startIcon={<DeleteIcon />}
+                      onClick={() => setDeleteWarning({show:true,entryToDeleteName:dirEntry.name})}
                     >
                       Delete
                     </Button>
                   </CardActions>
+                  {deleteWarning.show && deleteWarning.entryToDeleteName === dirEntry.name  &&
+                  <Alert
+                    severity="warning"
+                    action={
+                    <div>
+                      <Button color="inherit" size="small" onClick={() => handleDeleteEntry(dirEntry)}>
+                        DELETE
+                      </Button>
+                      <Button color="inherit" size="small" onClick={() => {setDeleteWarning({show:false,entryToDeleteName:""})}}>
+                        CANCEL
+                      </Button>
+                    </div>
+                    }
+                  >
+                    Are you sure you want to delete it?
+                  </Alert>
+                  }
                 </Card>
               </Grid>
             ))}

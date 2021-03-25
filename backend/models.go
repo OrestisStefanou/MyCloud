@@ -27,3 +27,9 @@ type DirectoryEntryInfo struct {
 	Icon        string `json:"icon" binding:"required"`
 	Link        string `json:"link" binding:"required"`
 }
+
+type DirectoryToDeleteInfo struct {
+	Name        string `json:"name"`
+	IsDirectory bool   `json:"isDirectory"`
+	Path        string `json:"path"`
+}

@@ -44,6 +44,7 @@ func main() {
 		v1.POST("/upload", uploadFile)
 		v1.POST("/listDir", listClientDir)
 		v1.POST("/createDir", createDirectory)
+		v1.POST("/delete", deleteEntry)
 		v1.StaticFS("/static", http.Dir("./static"))
 		v1.StaticFS("/files", http.Dir(clientsBaseDir))
 	}
@@ -194,5 +195,36 @@ func createDirectory(c *gin.Context) {
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Directory name not given"})
+	}
+}
+
+func deleteEntry(c *gin.Context) {
+	session := sessions.Default(c)
+	var userEmail string
+	email := session.Get("userEmail")
+	if email != nil {
+		userEmail = email.(string)
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authenticated"})
+	}
+
+	var dirEntry DirectoryToDeleteInfo
+	if err := c.ShouldBindJSON(&dirEntry); err == nil {
+		pathToDelete := filepath.Join(clientsBaseDir, userEmail, dirEntry.Path, dirEntry.Name)
+		if dirEntry.IsDirectory {
+			err := os.RemoveAll(pathToDelete)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Error"})
+			}
+			c.JSON(http.StatusOK, gin.H{"status": "Deleted"})
+		} else {
+			err := os.Remove(pathToDelete)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Error"})
+			}
+			c.JSON(http.StatusOK, gin.H{"status": "Deleted"})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error during parsing the object"})
 	}
 }
