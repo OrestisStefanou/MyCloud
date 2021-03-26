@@ -41,6 +41,7 @@ func main() {
 		v1.POST("/listDir", listClientDir)
 		v1.POST("/createDir", createDirectory)
 		v1.POST("/delete", deleteEntry)
+		v1.GET("/size", availableSize)
 		v1.StaticFS("/static", http.Dir("./static"))
 		v1.StaticFS("/files", http.Dir(clientsBaseDir))
 	}

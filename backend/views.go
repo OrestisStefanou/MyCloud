@@ -195,3 +195,21 @@ func deleteEntry(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error during parsing the object"})
 	}
 }
+
+//GET /v1/MyCloud/size
+func availableSize(c *gin.Context) {
+	session := sessions.Default(c)
+	var userEmail string
+	email := session.Get("userEmail")
+	if email != nil {
+		userEmail = email.(string)
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authenticated"})
+	}
+	clientFolderPath := filepath.Join(clientsBaseDir, userEmail)
+	totalSize, err := getDirSize(clientFolderPath)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Internal error"})
+	}
+	c.JSON(http.StatusOK, gin.H{"totalSize": totalSize})
+}
