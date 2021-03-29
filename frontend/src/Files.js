@@ -82,6 +82,7 @@ export default function Files() {
   const [errorMessage,setErrorMessage] = useState('');
   const [directoryEntries,setDirectoryEntries] = useState([]);
   const [deleteWarning,setDeleteWarning] = useState({show:false,entryToDeleteName:''});
+  const [dirSize,setDirSize] = useState(0);
   
   let history = useHistory();
 
@@ -221,8 +222,22 @@ export default function Files() {
     }); 
   }
 
+  const getDirectorySize = () => {
+    fetch('http://localhost:8080/v1/MyCloud/size',{
+    method: "GET",
+    mode:"cors",
+    credentials:"include",
+    headers: {"Content-type": "application/json; charset=UTF-8",/*"Origin":"http://localhost:3000"*/}
+    })
+    .then(response => response.json())
+    .then(json => setDirSize(json.totalSize))
+    .catch(err => console.log('Request Failed',err))
+    
+  }  
+
   useEffect(() => {
     listDirectory();
+    getDirectorySize();
   }, [currentPath]);
 
   return (
@@ -244,7 +259,7 @@ export default function Files() {
               My Files
             </Typography>
             <Typography variant="h5" align="center" color="textSecondary" paragraph>
-              Current Directory:{currentPath}
+              Used space:{dirSize} GB / 2GB
               <Breadcrumbs aria-label="breadcrumb" align="inherit">
               {currentPath.split("_").map((dirEntry) => (
                       <Link key={dirEntry} color="inherit" href="/" align="inherit" onClick={handleBreadcrumb}>
@@ -319,7 +334,7 @@ export default function Files() {
                     </Grid>
                     <Grid item>
                       <Typography variant="h6" gutterBottom>
-                        Size in bytes: {selectedFile.size}
+                        Size: {(selectedFile.size/ 1024.0 / 1024.0).toFixed(3)} MB
                       </Typography>
                     </Grid>
                     <Grid item> 
@@ -331,6 +346,14 @@ export default function Files() {
                       onClick={handleSubmission}
                       >
                       Upload
+                      </Button>
+                      <Button
+                      variant="contained"
+                      color="secondary"
+                      className={classes.button}
+                      onClick={() => setIsFilePicked(false)}
+                      >
+                      Cancel
                       </Button>
                     </Grid>
                   </React.Fragment>
