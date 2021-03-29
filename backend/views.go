@@ -120,7 +120,14 @@ func uploadFile(c *gin.Context) {
 	file, _ := c.FormFile("file")
 	urlPath := c.PostForm("path")
 	path := getPathFromURLParam(urlPath)
-	log.Println(file.Filename, path)
+	log.Println(file.Filename, path, file.Size)
+
+	fileSizeGB := float64(file.Size) / 1024.0 / 1024.0 / 1024.0
+	clientFolderPath := filepath.Join(clientsBaseDir, userEmail)
+	totalSize, _ := getDirSize(clientFolderPath)
+	if totalSize+fileSizeGB > 5 {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not enough space"})
+	}
 
 	// Upload the file to specific dst.
 	dst := filepath.Join(clientsBaseDir, userEmail, path, file.Filename)
