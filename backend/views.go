@@ -179,17 +179,22 @@ func deleteEntry(c *gin.Context) {
 	if err := c.ShouldBindJSON(&dirEntry); err == nil {
 		pathToDelete := filepath.Join(clientsBaseDir, userEmail, dirEntry.Path, dirEntry.Name)
 		if dirEntry.IsDirectory {
+			dirSize, _ := getDirSize(pathToDelete)
 			err := os.RemoveAll(pathToDelete)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Error"})
 			}
-			c.JSON(http.StatusOK, gin.H{"status": "Deleted"})
+			c.JSON(http.StatusOK, gin.H{"status": "Deleted", "space": dirSize})
 		} else {
+			fileInfo, _ := os.Stat(pathToDelete)
+			fileSize := fileInfo.Size()
+			fileSizeGB := float64(fileSize) / 1024.0 / 1024.0 / 1024.0
 			err := os.Remove(pathToDelete)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Error"})
 			}
-			c.JSON(http.StatusOK, gin.H{"status": "Deleted"})
+
+			c.JSON(http.StatusOK, gin.H{"status": "Deleted", "space": fileSizeGB})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error during parsing the object"})

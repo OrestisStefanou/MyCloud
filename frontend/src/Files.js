@@ -111,7 +111,9 @@ export default function Files() {
         console.log('Success:', result);
         setFileUploading(false);
         setFileUploaded(true);
-        setDirectoryEntries([...directoryEntries,result.newFile])
+        var fileSize = (selectedFile.size/ 1024.0 / 1024.0 / 1024.0).toFixed(3);
+        setDirectoryEntries([...directoryEntries,result.newFile]);
+        setDirSize((parseFloat(dirSize) + parseFloat(fileSize)).toFixed(3));
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -218,6 +220,7 @@ export default function Files() {
         setDeleteWarning({show:false,entryToDeleteName:''});
         let newEntries = directoryEntries.filter((entry) => entry.name !== entryObject.name);
         setDirectoryEntries(newEntries);
+        setDirSize((parseFloat(dirSize) - parseFloat(json.space)).toFixed(3));
       }
     }); 
   }
@@ -259,7 +262,7 @@ export default function Files() {
               My Files
             </Typography>
             <Typography variant="h5" align="center" color="textSecondary" paragraph>
-              Used space:{dirSize} GB / 2GB
+              Used space:{dirSize} GB / 5GB
               <Breadcrumbs aria-label="breadcrumb" align="inherit">
               {currentPath.split("_").map((dirEntry) => (
                       <Link key={dirEntry} color="inherit" href="/" align="inherit" onClick={handleBreadcrumb}>
